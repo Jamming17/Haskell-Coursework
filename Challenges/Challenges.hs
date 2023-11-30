@@ -13,6 +13,7 @@ module Challenges (TileEdge(..),Tile(..),Puzzle,isPuzzleComplete,
 
 -- Import standard library and parsing definitions from Hutton 2016, Chapter 13
 --import Parsing
+import Data.List
 
 -- Challenge 1
 -- Testing Circuits
@@ -29,11 +30,12 @@ isFullyConnected = isHorizontallyConnected
 
 isHorizontallyConnected :: Puzzle -> Bool
 isHorizontallyConnected [] = True
-isHorizontallyConnected (ts:tss) = (and (isRowHorizontallyConnected ts) : isHorizontallyConnected tss) where
-  isRowHorizontallyConnected :: [Tile] -> Bool
-  isRowHorizontallyConnected [] = True
-  isRowHorizontallyConnected (t:[]) = if (getTileEdges t) `elem` East then False else True
-  isRowHorizontallyConnected (t1:t2:ts) = (and (horizontalCheckConnect t1 t2) : isRowHorizontallyConnected (t2 : ts)) where
+isHorizontallyConnected (ts:tss) = (and [(isRowHorizontallyConnected ts True), (isHorizontallyConnected tss)]) where
+  isRowHorizontallyConnected :: [Tile] -> Bool -> Bool
+  isRowHorizontallyConnected [] _ = True
+  isRowHorizontallyConnected at@(t:ts) True = if West `elem` (getTileEdges t) then False else isRowHorizontallyConnected at False
+  isRowHorizontallyConnected (t:[]) _ = if East `elem` (getTileEdges t) then False else True
+  isRowHorizontallyConnected (t1:t2:ts) _ = (and [(horizontalCheckConnect t1 t2), (isRowHorizontallyConnected (t2 : ts) False)]) where
     horizontalCheckConnect :: Tile -> Tile -> Bool
     horizontalCheckConnect t1 t2 = if East `elem` t1e && not (West `elem` t2e) || West `elem` t2e && not (East `elem` t1e) then False else True where
       t1e = getTileEdges t1
