@@ -26,7 +26,35 @@ isPuzzleComplete :: Puzzle -> Bool
 isPuzzleComplete p = isFullyConnected p
 
 isFullyConnected :: Puzzle -> Bool
-isFullyConnected p = (isHorizontallyConnected p) && (isVerticallyConnected (transpose p))
+isFullyConnected p = if and [(isHorizontallyConnected p), (isVerticallyConnected (transpose p))] == True then (sourcesAndSinks 1 (concat p) (createPuzzleTuple p)) else False
+
+--Checks whether every source connects to a sink and vice-versa
+sourcesAndSinks :: Int -> [Tile] -> ([(Int, Tile)], Int, Int) -> Bool
+sourcesAndSinks _ [] _ = True
+sourcesAndSinks i (p:ps) pt = and [checkTile i p pt : sourcesAndSinks (i + 1) ps pt] where
+  checkTile :: Int -> Tile -> ([(Int, Tile)], Int, Int) -> Bool
+  checkTile _ (Wire _) _ = True
+  checkTile i (Source ss) pt = containsSink (fullPath ss i pt [])
+  checkTile i (Sink ss) pt = containsSource (fullPath ss i pt []) where
+    containsSink :: [Tile] -> Bool
+    containsSink [] = False
+    containsSink ((Sink _):_) = True
+    containsSink (t:ts) = containsSink ts
+    containsSource :: [Tile] -> Bool
+    containsSource [] = False
+    containsSource ((Source _):_) = True
+    containsSource (t:ts) = containsSource ts
+    -- Parameters: edges of current tile / index of current tile / puzzle tuple / list of visited indexes
+    fullPath :: [TileEdge] -> Int -> ([(Int, Tile)], Int, Int) -> [Int] -> [Tile]
+    fullPath es i pt@(p, h, w) v = (filter (\(x, _) -> x == i) p) ++ northNode ++ southNode ++ eastNode ++ westNode where
+      northNode = (if North `elem` es then (if (i - w) `elem` v then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i - w)) p)))) (i - w) pt (i : v)) else []) else [])
+      southNode = (if South `elem` es then (if (i + w) `elem` v then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i + w)) p)))) (i + w) pt (i : v)) else []) else [])
+      eastNode = (if East `elem` es then (if (i + 1) `elem` v then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i + 1)) p)))) (i + 1) pt (i : v)) else []) else [])
+      westNode = (if West `elem` es then (if (i - 1) `elem` v then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i - 1)) p)))) (i - 1) pt (i : v)) else []) else [])
+
+--Indexed Flattened list of tuples, height, width
+createPuzzleTuple :: Puzzle -> ([(Int, Tile)], Int, Int)
+createPuzzleTuple p = ((zip [1..] (concat p)), length p, (length (concat p)) `div` (length p))
 
 --Checks whether a row of wires in the puzzle are all connected
 isHorizontallyConnected :: Puzzle -> Bool
