@@ -23,10 +23,10 @@ data Tile = Source [ TileEdge ] | Sink [ TileEdge ] | Wire [ TileEdge ]  derivin
 type Puzzle = [ [ Tile ] ]
 
 isPuzzleComplete :: Puzzle -> Bool
-isPuzzleComplete = isFullyConnected
+isPuzzleComplete p = isFullyConnected p
 
 isFullyConnected :: Puzzle -> Bool
-isFullyConnected = isHorizontallyConnected
+isFullyConnected p = (isHorizontallyConnected p) && (isVerticallyConnected (transpose p))
 
 isHorizontallyConnected :: Puzzle -> Bool
 isHorizontallyConnected [] = True
@@ -38,6 +38,19 @@ isHorizontallyConnected (ts:tss) = (and [(isRowHorizontallyConnected ts True), (
   isRowHorizontallyConnected (t1:t2:ts) _ = (and [(horizontalCheckConnect t1 t2), (isRowHorizontallyConnected (t2 : ts) False)]) where
     horizontalCheckConnect :: Tile -> Tile -> Bool
     horizontalCheckConnect t1 t2 = if East `elem` t1e && not (West `elem` t2e) || West `elem` t2e && not (East `elem` t1e) then False else True where
+      t1e = getTileEdges t1
+      t2e = getTileEdges t2
+
+isVerticallyConnected :: Puzzle -> Bool
+isVerticallyConnected [] = True
+isVerticallyConnected (ts:tss) = (and [(isRowVerticallyConnected ts True), (isVerticallyConnected tss)]) where
+  isRowVerticallyConnected :: [Tile] -> Bool -> Bool
+  isRowVerticallyConnected [] _ = True
+  isRowVerticallyConnected at@(t:ts) True = if North `elem` (getTileEdges t) then False else isRowVerticallyConnected at False
+  isRowVerticallyConnected (t:[]) _ = if South `elem` (getTileEdges t) then False else True
+  isRowVerticallyConnected (t1:t2:ts) _ = (and [(verticalCheckConnect t1 t2), (isRowVerticallyConnected (t2 : ts) False)]) where
+    verticalCheckConnect :: Tile -> Tile -> Bool
+    verticalCheckConnect t1 t2 = if South `elem` t1e && not (North `elem` t2e) || North `elem` t2e && not (South `elem` t1e) then False else True where
       t1e = getTileEdges t1
       t2e = getTileEdges t2
 
