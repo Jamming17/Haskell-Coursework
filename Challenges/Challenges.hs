@@ -12,7 +12,7 @@ module Challenges (TileEdge(..),Tile(..),Puzzle,isPuzzleComplete,
                     where
 
 -- Import standard library and parsing definitions from Hutton 2016, Chapter 13
-import Parsing
+--import Parsing
 
 -- Challenge 1
 -- Testing Circuits
@@ -22,7 +22,28 @@ data Tile = Source [ TileEdge ] | Sink [ TileEdge ] | Wire [ TileEdge ]  derivin
 type Puzzle = [ [ Tile ] ]
 
 isPuzzleComplete :: Puzzle -> Bool
-isPuzzleComplete = undefined
+isPuzzleComplete = isFullyConnected
+
+isFullyConnected :: Puzzle -> Bool
+isFullyConnected = isHorizontallyConnected
+
+isHorizontallyConnected :: Puzzle -> Bool
+isHorizontallyConnected [] = True
+isHorizontallyConnected (ts:tss) = (and (isRowHorizontallyConnected ts) : isHorizontallyConnected tss) where
+  isRowHorizontallyConnected :: [Tile] -> Bool
+  isRowHorizontallyConnected [] = True
+  isRowHorizontallyConnected (t:[]) = if (getTileEdges t) `elem` East then False else True
+  isRowHorizontallyConnected (t1:t2:ts) = (and (horizontalCheckConnect t1 t2) : isRowHorizontallyConnected (t2 : ts)) where
+    horizontalCheckConnect :: Tile -> Tile -> Bool
+    horizontalCheckConnect t1 t2 = if East `elem` t1e && not (West `elem` t2e) || West `elem` t2e && not (East `elem` t1e) then False else True where
+      t1e = getTileEdges t1
+      t2e = getTileEdges t2
+
+getTileEdges :: Tile -> [TileEdge]
+getTileEdges (Wire es) = es
+getTileEdges (Sink es) = es
+getTileEdges (Source es) = es
+
 
 -- Challenge 2
 -- Solving Circuits
