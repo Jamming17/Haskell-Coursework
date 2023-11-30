@@ -1,0 +1,37 @@
+#Test case examples provided in coursework instructions
+Unconnected, completable puzzle
+[ [ Wire [North,West] , Wire [North,South] , Source [North] ],
+ [ Wire [North,West], Wire [East,West], Wire [North,East] ],
+ [ Sink [West] , Wire [North,South] , Wire [North,West] ] ]
+
+
+Connected, complete puzzle
+[ [ Wire [South,East] , Wire [East,West] , Source [West] ],
+ [ Wire [North,East], Wire [East,West], Wire [South,West] ],
+ [ Sink [East] , Wire [East,West] , Wire [North,West] ] ]
+
+
+
+
+#Single-row test cases for horizontal checking
+
+Puzzle with leftmost wire pointing into West ##False
+[[Wire [West], Wire [], Wire []]]
+
+Puzzle with rightmost wire pointing East ##False
+[[Wire [West], Wire [], Wire [East]]]
+
+Connected puzzle 1 ##True
+[[Wire [South, East], Wire [East, West], Source [West]]]
+
+Connected puzzle 2 ##True
+[[Wire [South, East], Wire [South, West], Wire []]]
+
+Connected puzzle 3 ##True
+[[Wire [South, East], Wire [South, West], Wire [], Wire [], Wire [], Wire [], Wire [], Wire [], Wire [], Wire [], Source [East], Sink [West]]]
+
+Unconnected puzzle ##False
+[[Wire [North, West], Wire [North, South], Source [North]]]
+
+Empty puzzle ##True
+[[Wire [], Wire [], Wire []]]
