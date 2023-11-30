@@ -23,10 +23,10 @@ data Tile = Source [ TileEdge ] | Sink [ TileEdge ] | Wire [ TileEdge ]  derivin
 type Puzzle = [ [ Tile ] ]
 
 isPuzzleComplete :: Puzzle -> Bool
-isPuzzleComplete p = isFullyConnected p
+isPuzzleComplete p = if isFullyConnected p == True then (sourcesAndSinks 1 (concat p) (createPuzzleTuple p)) else False
 
 isFullyConnected :: Puzzle -> Bool
-isFullyConnected p = if and [(isHorizontallyConnected p), (isVerticallyConnected (transpose p))] == True then (sourcesAndSinks 1 (concat p) (createPuzzleTuple p)) else False
+isFullyConnected p = and [(isHorizontallyConnected p), (isVerticallyConnected (transpose p))]
 
 --Checks whether every source connects to a sink and vice-versa
 sourcesAndSinks :: Int -> [Tile] -> ([(Int, Tile)], Int, Int) -> Bool
@@ -48,10 +48,10 @@ sourcesAndSinks i (p:ps) pt = and (checkTile i p pt : [sourcesAndSinks (i + 1) p
 -- Parameters: edges of current tile / index of current tile / puzzle tuple / list of visited indexes
 fullPath :: [TileEdge] -> Int -> ([(Int, Tile)], Int, Int) -> [Int] -> [Tile]
 fullPath es i pt@(p, h, w) v = (snd (head (filter (\(x, _) -> x == i) p))) : northNode ++ southNode ++ eastNode ++ westNode where
-  northNode = (if North `elem` es then (if (i - w) `elem` v then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i - w)) p)))) (i - w) pt (i : v)) else []) else [])
-  southNode = (if South `elem` es then (if (i + w) `elem` v then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i + w)) p)))) (i + w) pt (i : v)) else []) else [])
-  eastNode = (if East `elem` es then (if (i + 1) `elem` v then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i + 1)) p)))) (i + 1) pt (i : v)) else []) else [])
-  westNode = (if West `elem` es then (if (i - 1) `elem` v then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i - 1)) p)))) (i - 1) pt (i : v)) else []) else [])
+  northNode = (if North `elem` es then (if not((i - w) `elem` v) then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i - w)) p)))) (i - w) pt (i : v)) else []) else [])
+  southNode = (if South `elem` es then (if not((i + w) `elem` v) then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i + w)) p)))) (i + w) pt (i : v)) else []) else [])
+  eastNode = (if East `elem` es then (if not((i + 1) `elem` v) then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i + 1)) p)))) (i + 1) pt (i : v)) else []) else [])
+  westNode = (if West `elem` es then (if not((i - 1) `elem` v) then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i - 1)) p)))) (i - 1) pt (i : v)) else []) else [])
 
 --Indexed Flattened list of tuples, height, width
 createPuzzleTuple :: Puzzle -> ([(Int, Tile)], Int, Int)

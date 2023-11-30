@@ -50,3 +50,13 @@ Unconnected puzzle ##False
 
 Empty puzzle ##True
 [[Wire []], [Wire []], [Wire []]]
+
+
+
+
+
+
+# Full puzzle tests
+
+Puzzle with two directly connected sinks and sources ##True
+[[Sink [East], Source [West]], [Wire [], Sink [South]], [Wire [], Source [North]]]
