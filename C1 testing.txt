@@ -1,8 +1,6 @@
 #Test case examples provided in coursework instructions
 Unconnected, completable puzzle
-[ [ Wire [North,West] , Wire [North,South] , Source [North] ],
- [ Wire [North,West], Wire [East,West], Wire [North,East] ],
- [ Sink [West] , Wire [North,South] , Wire [North,West] ] ]
+[ [ Wire [North,West] , Wire [North,South] , Source [North] ], [ Wire [North,West], Wire [East,West], Wire [North,East] ], [ Sink [West] , Wire [North,South] , Wire [North,West] ] ]
 
 
 Connected, complete puzzle
@@ -45,10 +43,10 @@ Puzzle with lowermost wire pointing South ##False
 [[Wire [North]], [Wire []], [Wire [South]]]
 
 Connected puzzle 1 ##True
-[[Wire [East, South]], [Wire [South, North]], [Source [North]]]
+[[Wire [South]], [Wire [South, North]], [Source [North]]]
 
 Unconnected puzzle ##False
-[[Wire [West, North]], [Wire [West, East]], [Source [West]]]
+[[Wire [North]], [Wire [West, East]], [Source [West]]]
 
 Empty puzzle ##True
 [[Wire []], [Wire []], [Wire []]]

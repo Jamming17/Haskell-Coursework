@@ -28,6 +28,7 @@ isPuzzleComplete p = isFullyConnected p
 isFullyConnected :: Puzzle -> Bool
 isFullyConnected p = (isHorizontallyConnected p) && (isVerticallyConnected (transpose p))
 
+--Checks whether a row of wires in the puzzle are all connected
 isHorizontallyConnected :: Puzzle -> Bool
 isHorizontallyConnected [] = True
 isHorizontallyConnected (ts:tss) = (and [(isRowHorizontallyConnected ts True), (isHorizontallyConnected tss)]) where
@@ -41,6 +42,7 @@ isHorizontallyConnected (ts:tss) = (and [(isRowHorizontallyConnected ts True), (
       t1e = getTileEdges t1
       t2e = getTileEdges t2
 
+--Checks whether a column of wires in the puzzle are all connected
 isVerticallyConnected :: Puzzle -> Bool
 isVerticallyConnected [] = True
 isVerticallyConnected (ts:tss) = (and [(isRowVerticallyConnected ts True), (isVerticallyConnected tss)]) where
@@ -54,6 +56,7 @@ isVerticallyConnected (ts:tss) = (and [(isRowVerticallyConnected ts True), (isVe
       t1e = getTileEdges t1
       t2e = getTileEdges t2
 
+--Retrieves tile edges regardless of type
 getTileEdges :: Tile -> [TileEdge]
 getTileEdges (Wire es) = es
 getTileEdges (Sink es) = es
