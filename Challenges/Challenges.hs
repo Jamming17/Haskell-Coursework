@@ -23,7 +23,13 @@ data Tile = Source [ TileEdge ] | Sink [ TileEdge ] | Wire [ TileEdge ]  derivin
 type Puzzle = [ [ Tile ] ]
 
 isPuzzleComplete :: Puzzle -> Bool
-isPuzzleComplete p = if isFullyConnected p == True then (sourcesAndSinks 1 (concat p) (createPuzzleTuple p)) else False
+isPuzzleComplete p = if (sourceSinkCount (concat p)) == True then (if isFullyConnected p == True then (sourcesAndSinks 1 (concat p) (createPuzzleTuple p)) else False) else False
+
+sourceSinkCount :: [Tile] -> Bool
+sourceSinkCount [] = False
+sourceSinkCount ((Sink _):_) = True
+sourceSinkCount ((Source _):_) = True
+sourceSinkCount (t:ts) = sourceSinkCount ts
 
 isFullyConnected :: Puzzle -> Bool
 isFullyConnected p = and [(isHorizontallyConnected p), (isVerticallyConnected (transpose p))]
