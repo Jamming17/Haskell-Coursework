@@ -23,7 +23,7 @@ data Tile = Source [ TileEdge ] | Sink [ TileEdge ] | Wire [ TileEdge ]  derivin
 type Puzzle = [ [ Tile ] ]
 
 isPuzzleComplete :: Puzzle -> Bool
-isPuzzleComplete p = if (sourceSinkCount (concat p)) == True then (if isFullyConnected p == True then (sourcesAndSinks 1 (concat p) (createPuzzleTuple p) (concat p)) else False) else False
+isPuzzleComplete p = if (sourceSinkCount (concat p)) == True then (if isFullyConnected p == True then (sourcesAndSinks 1 (concat p) (createPuzzleTuple p)) else False) else False
 
 sourceSinkCount :: [Tile] -> Bool
 sourceSinkCount [] = False
@@ -31,33 +31,27 @@ sourceSinkCount ((Sink _):_) = True
 sourceSinkCount ((Source _):_) = True
 sourceSinkCount (t:ts) = sourceSinkCount ts
 
-totalFilledTileCount :: [Tile] -> Int
-totalFilledTileCount [] = 0
-totalFilledTileCount ((Wire []):ts) = totalFilledTileCount ts
-totalFilledTileCount (_:ts) = 1 + totalFilledTileCount ts
-
 isFullyConnected :: Puzzle -> Bool
 isFullyConnected p = and [(isHorizontallyConnected p), (isVerticallyConnected (transpose p))]
 
 --Checks whether every source connects to a sink and vice-versa
---Parameters: index of current tile / remaining concatenated puzzle / puzzle tuple / full concatenated puzzle
-sourcesAndSinks :: Int -> [Tile] -> ([(Int, Tile)], Int, Int) -> [Tile] -> Bool
-sourcesAndSinks _ [] _ _ = True
-sourcesAndSinks i (p:ps) pt ap = and (checkTile i p pt ap : [sourcesAndSinks (i + 1) ps pt ap]) where
-  checkTile :: Int -> Tile -> ([(Int, Tile)], Int, Int) -> [Tile] -> Bool
-  checkTile _ (Wire _) _ _ = True
-  checkTile i (Source ss) pt ap = (containsSink (fullPath ss i pt [])) && (length (fullPath ss i pt []) == totalFilledTileCount ap) where
+sourcesAndSinks :: Int -> [Tile] -> ([(Int, Tile)], Int, Int) -> Bool
+sourcesAndSinks _ [] _ = True
+sourcesAndSinks i (p:ps) pt = and (checkTile i p pt : [sourcesAndSinks (i + 1) ps pt]) where
+  checkTile :: Int -> Tile -> ([(Int, Tile)], Int, Int) -> Bool
+  checkTile _ (Wire _) _ = True
+  checkTile i (Source ss) pt = containsSink (fullPath ss i pt []) where
     containsSink :: [Tile] -> Bool
     containsSink [] = False
     containsSink ((Sink _):_) = True
     containsSink (t:ts) = containsSink ts
-  checkTile i (Sink ss) pt ap = (containsSource (fullPath ss i pt [])) && (length (fullPath ss i pt []) == totalFilledTileCount ap) where
+  checkTile i (Sink ss) pt = containsSource (fullPath ss i pt []) where
     containsSource :: [Tile] -> Bool
     containsSource [] = False
     containsSource ((Source _):_) = True
     containsSource (t:ts) = containsSource ts
 
---Parameters: edges of current tile / index of current tile / puzzle tuple / list of visited indexes
+-- Parameters: edges of current tile / index of current tile / puzzle tuple / list of visited indexes
 fullPath :: [TileEdge] -> Int -> ([(Int, Tile)], Int, Int) -> [Int] -> [Tile]
 fullPath es i pt@(p, h, w) v = (snd (head (filter (\(x, _) -> x == i) p))) : northNode ++ southNode ++ eastNode ++ westNode where
   northNode = (if North `elem` es then (if not((i - w) `elem` v) then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i - w)) p)))) (i - w) pt (i : v)) else []) else [])

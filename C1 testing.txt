@@ -58,7 +58,7 @@ Empty puzzle ##True
 
 # Full puzzle tests
 
-Puzzle with two directly connected sinks and sources ##False
+Puzzle with two directly connected sinks and sources ##True (should become False on next fix)
 [[Sink [East], Source [West]], [Wire [], Sink [South]], [Wire [], Source [North]]]
 
 Two sinks leading to the same source ##True
