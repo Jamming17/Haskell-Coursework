@@ -106,6 +106,24 @@ data Rotation = R0 | R90 | R180 | R270
 solveCircuit :: Puzzle -> Maybe [[ Rotation ]]
 solveCircuit = undefined
 
+rotateTile :: [TileEdge] -> Rotation -> [TileEdge]
+rotateTile [] _ = []
+rotateTile (e:es) R90
+  | e == North = East : rotateTile es R90
+  | e == East = South : rotateTile es R90
+  | e == South = West : rotateTile es R90
+  | e == West = North : rotateTile es R90
+rotateTile (e:es) R180  
+  | e == North = South : rotateTile es R180
+  | e == East = West : rotateTile es R180
+  | e == South = North : rotateTile es R180
+  | e == West = East : rotateTile es R180
+rotateTile (e:es) R270
+  | e == North = West : rotateTile es R180
+  | e == East = North : rotateTile es R180
+  | e == South = East : rotateTile es R180
+  | e == West = South : rotateTile es R180
+
 -- Challenge 3
 -- Pretty Printing Let Expressions
 
