@@ -104,10 +104,53 @@ data Rotation = R0 | R90 | R180 | R270
   deriving (Eq,Show,Read)
 
 solveCircuit :: Puzzle -> Maybe [[ Rotation ]]
-solveCircuit = undefined
+solveCircuit p = solveHelper (createPuzzleTuple p) 1 p
+
+--Parameters: rotating puzzle tuple / current index / original puzzle
+solveHelper :: ([(Int, Tile)], Int, Int) -> Int -> Puzzle -> Maybe [[Rotation]]
+solveHelper ([], _, _) _ _ = Nothing
+solveHelper pt@(its, h, w) i op = if isPuzzleComplete (puzzleTupleToPuzzle pt) then Just (createFinalMatrix (puzzleTupleToPuzzle pt) op) else (if i > (maximum (map fst its)) then Nothing else (if (isJust r1) then r1 else (if (isJust r2) then r2 else (if (isJust r3) then r3 else (if (isJust r4) then r4 else (Nothing)))))) where
+  r1 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R0)) i)) (i + 1) op
+  r2 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R90)) i)) (i + 1) op
+  r3 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R180)) i)) (i + 1) op
+  r4 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R270)) i)) (i + 1) op
+
+createFinalMatrix :: Puzzle -> Puzzle -> [[Rotation]]
+createFinalMatrix np op = rebuildRotationMatrix ((length (concat np)) `div` (length np)) (createFinalMatrixHelper (concat np) (concat op)) where
+  createFinalMatrixHelper :: [Tile] -> [Tile] -> [Rotation]
+  createFinalMatrixHelper [] _ = []
+  createFinalMatrixHelper (t1:t1s) (t2:t2s)
+    | t1 == t2 = R0 : createFinalMatrixHelper t1s t2s
+    | t1 == (swapTileEdges t2 (rotateTile (getTileEdges t2) R90)) = R90 : createFinalMatrixHelper t1s t2s
+    | t1 == (swapTileEdges t2 (rotateTile (getTileEdges t2) R180)) = R180 : createFinalMatrixHelper t1s t2s
+    | t1 == (swapTileEdges t2 (rotateTile (getTileEdges t2) R270)) = R270 : createFinalMatrixHelper t1s t2s
+
+rebuildRotationMatrix :: Int -> [Rotation] -> [[Rotation]]
+rebuildRotationMatrix _ [] = []
+rebuildRotationMatrix w rs = (fst rSplit) : (rebuildRotationMatrix w (snd rSplit)) where
+  rSplit = splitAt w rs
+
+puzzleTupleToPuzzle :: ([(Int, Tile)], Int, Int) -> Puzzle
+puzzleTupleToPuzzle (its, _, w) = rebuildPuzzle w (map snd its)
+
+isJust :: Maybe a -> Bool
+isJust (Just _) = True
+isJust Nothing = False
+
+insertTileIntoPuzzle :: ([(Int, Tile)], Int, Int) -> Tile -> Int -> Puzzle
+insertTileIntoPuzzle (ts, h, w) t i = rebuildPuzzle w (puzzleHelper ts t i) where
+  puzzleHelper :: [(Int, Tile)] -> Tile -> Int -> [Tile]
+  puzzleHelper [] _ _ = []
+  puzzleHelper ((pi, t):ts) tt i = if pi == i then tt : puzzleHelper ts tt i else t : puzzleHelper ts tt i
+
+rebuildPuzzle :: Int -> [Tile] -> Puzzle
+rebuildPuzzle _ [] = []
+rebuildPuzzle w ts = (fst tSplit) : (rebuildPuzzle w (snd tSplit)) where
+  tSplit = splitAt w ts 
 
 rotateTile :: [TileEdge] -> Rotation -> [TileEdge]
 rotateTile [] _ = []
+rotateTile es R0 = es
 rotateTile (e:es) R90
   | e == North = East : rotateTile es R90
   | e == East = South : rotateTile es R90
@@ -123,6 +166,11 @@ rotateTile (e:es) R270
   | e == East = North : rotateTile es R180
   | e == South = East : rotateTile es R180
   | e == West = South : rotateTile es R180
+
+swapTileEdges :: Tile -> [TileEdge] -> Tile
+swapTileEdges (Wire _) es = (Wire es)
+swapTileEdges (Source _) es = (Source es)
+swapTileEdges (Sink _) es = (Sink es)
 
 -- Challenge 3
 -- Pretty Printing Let Expressions
