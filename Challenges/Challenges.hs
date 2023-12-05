@@ -109,11 +109,16 @@ solveCircuit p = solveHelper (createPuzzleTuple p) 1 p
 --Parameters: rotating puzzle tuple / current index / original puzzle
 solveHelper :: ([(Int, Tile)], Int, Int) -> Int -> Puzzle -> Maybe [[Rotation]]
 solveHelper ([], _, _) _ _ = Nothing
-solveHelper pt@(its, h, w) i op = if isPuzzleComplete (puzzleTupleToPuzzle pt) then Just (createFinalMatrix (puzzleTupleToPuzzle pt) op) else (if i > (maximum (map fst its)) then Nothing else (if (isJust r1) then r1 else (if (isJust r2) then r2 else (if (isJust r3) then r3 else (if (isJust r4) then r4 else (Nothing)))))) where
-  r1 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R0)) i)) (i + 1) op
-  r2 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R90)) i)) (i + 1) op
-  r3 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R180)) i)) (i + 1) op
-  r4 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R270)) i)) (i + 1) op
+solveHelper pt@(its, h, w) i op
+  | isPuzzleComplete (puzzleTupleToPuzzle pt) = Just (createFinalMatrix (puzzleTupleToPuzzle pt) op)
+  | i > (maximum (map fst its)) = Nothing
+  | getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) == [] || and (map (`elem` (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])))) [North, South, East, West]) == True = if isPuzzleComplete (puzzleTupleToPuzzle pt) then Just (createFinalMatrix (puzzleTupleToPuzzle pt) op) else (if i > (maximum (map fst its)) then Nothing else (if (isJust r1) then r1 else (Nothing)))
+  | and (map (`elem` (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])))) [North, South]) == True && and (map (`notElem` (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])))) [East, West]) == True || and (map (`elem` (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])))) [East, West]) == True && and (map (`notElem` (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])))) [North, South]) == True = if isPuzzleComplete (puzzleTupleToPuzzle pt) then Just (createFinalMatrix (puzzleTupleToPuzzle pt) op) else (if i > (maximum (map fst its)) then Nothing else (if (isJust r1) then r1 else (if (isJust r2) then r2 else (Nothing))))
+  | otherwise = if (isJust r1) then r1 else (if (isJust r2) then r2 else (if (isJust r3) then r3 else (if (isJust r4) then r4 else (Nothing)))) where
+    r1 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R0)) i)) (i + 1) op
+    r2 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R90)) i)) (i + 1) op
+    r3 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R180)) i)) (i + 1) op
+    r4 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R270)) i)) (i + 1) op
 
 createFinalMatrix :: Puzzle -> Puzzle -> [[Rotation]]
 createFinalMatrix np op = rebuildRotationMatrix ((length (concat np)) `div` (length np)) (createFinalMatrixHelper (concat np) (concat op)) where
