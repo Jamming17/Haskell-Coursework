@@ -194,12 +194,13 @@ prettyPrint (Fst (Pair e1 _)) = prettyPrint e1
 prettyPrint (Snd (Pair _ e2)) = prettyPrint e2
 prettyPrint (Fst _) = "AAAAAAAAAAAAAAAAA"
 prettyPrint (Snd _) = "AAAAAAAAAAAAAAAAA"
-prettyPrint a@(Abs _ _) = "\\" ++ prettyPrintAbs a
+prettyPrint a@(Abs _ _) = "\\" ++ (prettyPrintAbs a "->")
+prettyPrint (Let b a@(Abs _ _) e2) = "let " ++ (prettyBind b) ++ " " ++ (prettyPrintAbs a "=") ++ " in " ++ (prettyPrint e2)
 prettyPrint (Let b e1 e2) = "let " ++ (prettyBind b) ++ " = " ++ (prettyPrint e1) ++ " in " ++ (prettyPrint e2)
 
-prettyPrintAbs :: LExpr -> String
-prettyPrintAbs (Abs b a@(Abs _ _)) = (prettyBind b) ++ " " ++ (prettyPrintAbs a)
-prettyPrintAbs (Abs b e) = (prettyBind b) ++ " -> " ++ (prettyPrint e)
+prettyPrintAbs :: LExpr -> String -> String
+prettyPrintAbs (Abs b a@(Abs _ _)) s = (prettyBind b) ++ " " ++ (prettyPrintAbs a s)
+prettyPrintAbs (Abs b e) s = (prettyBind b) ++ " " ++ s ++ " " ++ (prettyPrint e)
 
 prettyBind :: Bind -> String
 prettyBind Discard = "_"
