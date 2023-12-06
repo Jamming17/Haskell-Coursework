@@ -187,14 +187,19 @@ data Bind = Discard | V Int
 
 prettyPrint :: LExpr -> String
 prettyPrint (Var i) = 'x' : (show i)
-prettyPrint (App e1 e2) = (prettyPrint e1) ++ " " ++ (prettyPrint e2)
-prettyPrint (Pair e1 e2) = "(" ++ (prettyPrint e1) ++ ", " ++ (prettyPrint e2)
+prettyPrint (App v@(Var _) e2) = (prettyPrint v) ++ " " ++ (prettyPrint e2)
+prettyPrint (App e1 e2) = "(" ++ (prettyPrint e1) ++ ") " ++ (prettyPrint e2)
+prettyPrint (Pair e1 e2) = "(" ++ (prettyPrint e1) ++ ", " ++ (prettyPrint e2) ++ ")"
 prettyPrint (Fst (Pair e1 _)) = prettyPrint e1
 prettyPrint (Snd (Pair _ e2)) = prettyPrint e2
 prettyPrint (Fst _) = "AAAAAAAAAAAAAAAAA"
 prettyPrint (Snd _) = "AAAAAAAAAAAAAAAAA"
-prettyPrint (Abs b e) = "\\" ++ (prettyBind b) ++ " -> " ++ (prettyPrint e)
+prettyPrint a@(Abs _ _) = "\\" ++ prettyPrintAbs a
 prettyPrint (Let b e1 e2) = "let " ++ (prettyBind b) ++ " = " ++ (prettyPrint e1) ++ " in " ++ (prettyPrint e2)
+
+prettyPrintAbs :: LExpr -> String
+prettyPrintAbs (Abs b a@(Abs _ _)) = (prettyBind b) ++ " " ++ (prettyPrintAbs a)
+prettyPrintAbs (Abs b e) = (prettyBind b) ++ " -> " ++ (prettyPrint e)
 
 prettyBind :: Bind -> String
 prettyBind Discard = "_"
