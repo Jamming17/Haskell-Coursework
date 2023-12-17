@@ -12,7 +12,7 @@ module Challenges (TileEdge(..),Tile(..),Puzzle,isPuzzleComplete,
                     where
 
 -- Import standard library and parsing definitions from Hutton 2016, Chapter 13
---import Parsing
+import Parsing
 import Data.List
 
 -- Challenge 1
@@ -206,11 +206,78 @@ prettyBind :: Bind -> String
 prettyBind Discard = "_"
 prettyBind (V i) = 'x' : (show i)
 
-
 -- Challenge 4 - Parsing Let Expressions
 
 parseLetx :: String -> Maybe LExpr
-parseLetx = undefined
+parseLetx s = undefined
+
+many1 :: Parser a -> Parser [a]
+many1 p = do v <- p;
+             vs <- many p;
+             return (v:vs)
+
+plexpr :: Parser LExpr
+plexpr = papp
+
+papp :: Parser LExpr
+papp = do e1 <- plexpr;
+          char ' ';
+          e2 <- plexpr;
+          return (App e1 e2)
+       <|> pabs
+
+pabs :: Parser LExpr
+pabs = do char '\\';
+          b <- pbind;
+          string " -> ";
+          e <- plexpr;
+          return (Abs b e)
+       <|> plet
+
+plet :: Parser LExpr
+plet = do string "let ";
+          b <- pbind;
+          string " = ";
+          e1 <- plexpr;
+          string " in ";
+          e2 <- plexpr;
+          return (Let b e1 e2)
+       <|> ppair
+
+ppair :: Parser LExpr
+ppair = do char '(';
+           e1 <- plexpr;
+           char ',';
+           e2 <- plexpr;
+           char ')';
+           return (Pair e1 e2)
+         <|> pfst
+
+pfst :: Parser LExpr
+pfst = do string "fst (";
+          e <- plexpr;
+          char ')';
+          return (Fst e)
+       <|> psnd
+
+psnd :: Parser LExpr
+psnd = do string "snd (";
+          e <- plexpr;
+          char ')';
+          return (Snd e)
+       <|> pvar
+
+pvar :: Parser LExpr
+pvar = do char 'x';
+          ns <- many1 (do digit);
+          return (Var (read ns))
+
+pbind :: Parser Bind
+pbind = do char '_';
+           return Discard
+        <|> do char 'x';
+               ns <- many1 (do digit);
+               return (V (read ns))
 
 -- Challenge 5
 -- Let Encoding in Lambda 
