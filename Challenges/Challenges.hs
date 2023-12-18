@@ -209,29 +209,47 @@ prettyBind (V i) = 'x' : (show i)
 -- Challenge 4 - Parsing Let Expressions
 
 parseLetx :: String -> Maybe LExpr
-parseLetx s = undefined
+parseLetx s = let p = parse plexpr s in
+  if p == [] then Nothing else (if snd (head p) /= "" then Nothing else Just (fst (head p)))
 
 many1 :: Parser a -> Parser [a]
 many1 p = do v <- p;
              vs <- many p;
              return (v:vs)
 
+chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
+p `chainl1` op = do {a <- p; rest a}
+                 where
+                   rest a = (do f <- op
+                                b <- p
+                                rest (f a b))
+                           <|> return a
+
 plexpr :: Parser LExpr
-plexpr = papp
+plexpr = pbrackets `chainl1` pspace <|> pbrackets
+
+pbrackets :: Parser LExpr
+pbrackets = do char '(';
+               e <- plexpr;
+               char ')';
+               return e
+            <|> pabs
+
+pspace :: Parser (LExpr -> LExpr -> LExpr)
+pspace = do char ' ';
+            return App
 
 papp :: Parser LExpr
-papp = do e1 <- plexpr;
-          char ' ';
-          e2 <- plexpr;
-          return (App e1 e2)
+papp = do es <- papp `chainl1` pspace
+          return es
        <|> pabs
 
 pabs :: Parser LExpr
 pabs = do char '\\';
-          b <- pbind;
+          bs <- many1 (do space; pbind);
           string " -> ";
           e <- plexpr;
-          return (Abs b e)
+          return (foldr Abs e bs)
        <|> plet
 
 plet :: Parser LExpr
