@@ -255,11 +255,15 @@ pabs = do char '\\';
 plet :: Parser LExpr
 plet = do string "let ";
           b <- pbind;
+          bs <- many (do space; pbind);
           string " = ";
           e1 <- plexpr;
           string " in ";
           e2 <- plexpr;
-          return (Let b e1 e2)
+          let fes = case bs of
+                      [] -> e1
+                      _  -> foldr Abs e1 bs
+          return (Let b fes e2) 
        <|> ppair
 
 ppair :: Parser LExpr
