@@ -224,17 +224,22 @@ p `chainl1` op = do {a <- p; rest a}
                            <|> return a
 
 plexpr :: Parser LExpr
-plexpr = pbrackets `chainl1` pspace <|> pbrackets
+plexpr = do space;
+            e <- pbrackets `chainl1` pspace <|> pbrackets;
+            space;
+            return e
 
 pbrackets :: Parser LExpr
 pbrackets = do char '(';
+               space;
                e <- plexpr;
+               space;
                char ')';
                return e
             <|> pabs
 
 pspace :: Parser (LExpr -> LExpr -> LExpr)
-pspace = do char ' ';
+pspace = do space;
             return App
 
 papp :: Parser LExpr
@@ -245,18 +250,26 @@ papp = do es <- papp `chainl1` pspace
 pabs :: Parser LExpr
 pabs = do char '\\';
           bs <- many1 (do space; pbind);
-          string " -> ";
+          space;
+          string "->";
+          space;
           e <- plexpr;
           return (foldr Abs e bs)
        <|> plet
 
 plet :: Parser LExpr
-plet = do string "let ";
+plet = do string "let";
+          space;
           b <- pbind;
+          space;
           bs <- many (do space; pbind);
-          string " = ";
+          space;
+          char '=';
+          space;
           e1 <- plexpr;
-          string " in ";
+          space;
+          string "in";
+          space;
           e2 <- plexpr;
           let fes = case bs of
                       [] -> e1
@@ -266,23 +279,35 @@ plet = do string "let ";
 
 ppair :: Parser LExpr
 ppair = do char '(';
+           space;
            e1 <- plexpr;
+           space;
            char ',';
+           space;
            e2 <- plexpr;
+           space;
            char ')';
            return (Pair e1 e2)
          <|> pfst
 
 pfst :: Parser LExpr
-pfst = do string "fst (";
+pfst = do string "fst";
+          space;
+          char '('
+          space;
           e <- plexpr;
+          space;
           char ')';
           return (Fst e)
        <|> psnd
 
 psnd :: Parser LExpr
-psnd = do string "snd (";
+psnd = do string "snd";
+          space;
+          char '(';
+          space;
           e <- plexpr;
+          space;
           char ')';
           return (Snd e)
        <|> pvar
