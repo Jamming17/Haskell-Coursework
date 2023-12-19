@@ -190,10 +190,8 @@ prettyPrint (Var i) = 'x' : (show i)
 prettyPrint (App v@(Var _) e2) = (prettyPrint v) ++ " " ++ (prettyPrint e2)
 prettyPrint (App e1 e2) = "(" ++ (prettyPrint e1) ++ ") " ++ (prettyPrint e2)
 prettyPrint (Pair e1 e2) = "(" ++ (prettyPrint e1) ++ ", " ++ (prettyPrint e2) ++ ")"
-prettyPrint (Fst (Pair e1 _)) = prettyPrint e1
-prettyPrint (Snd (Pair _ e2)) = prettyPrint e2
-prettyPrint (Fst _) = "AAAAAAAAAAAAAAAAA"
-prettyPrint (Snd _) = "AAAAAAAAAAAAAAAAA"
+prettyPrint (Fst e) = "fst (" ++ (prettyPrint e) ++ ")"
+prettyPrint (Snd e) = "snd (" ++ (prettyPrint e) ++ ")"
 prettyPrint a@(Abs _ _) = "\\" ++ (prettyPrintAbs a "->")
 prettyPrint (Let b a@(Abs _ _) e2) = "let " ++ (prettyBind b) ++ " " ++ (prettyPrintAbs a "=") ++ " in " ++ (prettyPrint e2)
 prettyPrint (Let b e1 e2) = "let " ++ (prettyBind b) ++ " = " ++ (prettyPrint e1) ++ " in " ++ (prettyPrint e2)
