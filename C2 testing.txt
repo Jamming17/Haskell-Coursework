@@ -1,3 +1,6 @@
 Unconnected, completable 3x3 puzzle
 [[Wire [North, West], Wire [North, South], Source [North]], [Wire [North, West], Wire [East, West], Wire [North, East] ], [Sink [West], Wire [North, South], Wire [North, West]]]
         Correct response: [[R180, R90, R270], [R90, R0, R180], [R180, R90, R0]]
+
+Empty, uncompletable 4x4 puzzle
+[[Wire [], Wire [], Wire [], Wire []], [Wire [], Wire [], Wire [], Wire []], [Wire [], Wire [], Wire [], Wire []], [Wire [], Wire [], Wire [], Wire []]]

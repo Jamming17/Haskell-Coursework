@@ -1,0 +1,15 @@
+Application association test
+parseLetx "x1 x2 x3"
+// Just (App (App (Var 1) (Var 2)) (Var 3))
+
+Application brackets test
+parseLetx "x1 (x2 x3)"
+// Just (App (Var 1) (App (Var 2) (Var 3)))
+
+Let expression nested-abstraction test
+parseLetx "let x1 x3 = x2 in x1 x2"
+// Just (Let (V 1) (Abs (V 3) (Var 2)) (App (Var 1) (Var 2)))
+
+Let expression nested-abstraction test with applications
+parseLetx "let x1 _ x3 = x3 in \\x3 -> x1 x3 x3"
+// Just (Let (V 1) (Abs Discard (Abs (V 3) (Var 3))) (Abs (V 3) (App (App (Var 1) (Var 3)) (Var 3))))
