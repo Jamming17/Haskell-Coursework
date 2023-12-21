@@ -180,7 +180,7 @@ swapTileEdges (Sink _) es = (Sink es)
 -- Challenge 3
 -- Pretty Printing Let Expressions
 
-data LExpr = Var Int | App LExpr LExpr | Let Bind  LExpr LExpr | Pair LExpr LExpr | Fst LExpr | Snd LExpr  | Abs Bind LExpr 
+data LExpr = Var Int | App LExpr LExpr | Let Bind LExpr LExpr | Pair LExpr LExpr | Fst LExpr | Snd LExpr  | Abs Bind LExpr 
     deriving (Eq,Show,Read)
 data Bind = Discard | V Int 
     deriving (Eq,Show,Read)
@@ -330,8 +330,34 @@ pbind = do char '_';
 data LamExpr = LamVar Int | LamApp LamExpr LamExpr | LamAbs Int LamExpr 
                 deriving (Eq, Show, Read)
 
-letEnc :: LExpr -> LamExpr 
-letEnc =  undefined
+letEnc ::LExpr -> LamExpr
+letEnc l = encode l
+
+encode :: LExpr -> LamExpr
+encode (Var i) = LamVar i
+encode (App e1 e2) = LamApp (encode e1) (encode e2)
+encode (Abs (V i) e) = LamAbs i (encode e)
+encode (Abs (Discard) e) = LamAbs (chooseDiscardVar (encode e) 0) (encode e)
+encode (Let (V i) e1 e2) = LamApp (LamAbs (chooseDiscardVar (encode e2) 0) (encode e2)) (encode e1)
+encode (Let (Discard) e1 e2) = LamApp (LamAbs -996 (encode e2)) (encode e1)
+encode (Fst e) = LamApp (encode e) (LamAbs 0 (LamAbs 1 (LamVar 0)))
+encode (Snd e) = LamApp (encode e) (LamAbs 0 (LamAbs 1 (LamVar 1)))
+encode (Pair e1 e2) = LamAbs c (LamApp (LamApp (Var c) (encode e1)) (encode e2)) where
+  c = chooseDoubleDiscardVar e1 e2 0
+
+selectVar :: LamExpr -> Int -> Bool
+selectVar (LamVar int) i = if int == i then False else True
+selectVar (LamApp e1 e2) i = (selectVar e1 i) && (selectVar e2 i)
+selectVar (LamAbs int e) i = if int == i then False else (selectVar e i)
+
+chooseDiscardVar :: LamExpr -> Int -> Int
+chooseDiscardVar e i = if (selecVar e i) == True then i else (chooseDiscardVar e (i + 1))
+
+chooseDoubleDiscardVar :: LamExpr -> LamExpr -> Int -> Int
+chooseDoubleDiscardVar e1 e2 i = if ((selectVar e1 i) && (selectVar e2 i)) == True then i else (chooseDoubleDiscardVar e1 e2 (i + 1))
+
+
+
 
 -- Challenge 6
 -- Compare Innermost Reduction for Let_x and its Lambda Encoding
