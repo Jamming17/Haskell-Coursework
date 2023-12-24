@@ -382,12 +382,23 @@ subst (LamVar x) y e | x /= y = LamVar x
 subst (LamAbs x e1) y e  |  x /= y && not (free x e)  = LamAbs x (subst e1 y e)
 subst (LamAbs x e1) y e  |  x /= y &&     (free x e)  = let x' = (rename x e1) in subst (LamAbs x' (subst e1 x (LamVar x'))) y e
 subst (LamAbs x e1) y e  | x == y  = LamAbs x e1
-subst (LamApp e1 e2) y e = LamApp (subst e1 y e) (subst e2 y e) 
+subst (LamApp e1 e2) y e = LamApp (subst e1 y e) (subst e2 y e)
+
+substCount :: LamExpr -> Int -> LamExpr -> Int -> (LamExpr, Int)
+substCount (LamVar x) y e i | x == y = (e, i + 1)
+substCount (LamVar x) y e i | x /= y = (LamVar x, i + 1)
+substCount (LamAbs x e1) y e i |  x /= y && not (free x e)  = (LamAbs x s, i + ic + 1) where (s, ic) = substCount e1 y e 0
+substCount (LamAbs x e1) y e i |  x /= y &&     (free x e)  =(s, i + ic + 1) where (s, ic) = substCount (LamAbs x' (subst e1 x (LamVar x'))) y e 0 where x' = (rename x e1)
+substCount (LamAbs x e1) y e i | x == y  = (LamAbs x e1, i + 1)
+substCount (LamApp e1 e2) y e i = (LamApp s1 s2, i + ic1 + ic2 + 1)   where
+  (s1, ic1) = (substCount e1 y e 0)
+  (s2, ic2) = (substCount e2 y e 0)
 
 isLamValue :: LamExpr -> Bool
 isLamValue (LamVar _) = True
 isLamValue (LamAbs _ _) = True
 isLamValue _ = False
+
 
 -- CALL BY VALUE -- 
 cbvlam1 :: LamExpr -> Maybe LamExpr
@@ -402,6 +413,20 @@ cbvlam1 (LamApp e1 e2) | not (isLamValue e2) =
 cbvlam1 (LamApp (LamAbs x e1) e) | isLamValue e = Just (subst e1 x e)
 -- Otherwise terminated or blocked
 cbvlam1 _ = Nothing
+
+
+cbvLamCount :: LamExpr -> Int -> Maybe (LamExpr, Int)
+-- Contexts
+cbvLamCount (LamApp e1 e2) i | not (isLamValue e1) =
+  do (e', ic) <- cbvLamCount e1 0
+     return ((LamApp e' e2), i + ic)
+cbvLamCount (LamApp e1 e2) i | not (isLamValue e2) =
+  do (e', ic) <- cbvLamCount e2 0
+     return ((LamApp e1 e'), i + ic)
+-- Reductions
+cbvLamCount (LamApp (LamAbs x e1) e) i | isLamValue e = Just (s, i + ic + 1) where (s, ic) = substCount e1 x e 0
+-- Otherwise terminated or blocked
+cbvLamCount _ _ = Nothing
 
 -- CALL BY NAME --
 cbnlam1 :: LamExpr -> Maybe LamExpr
@@ -420,5 +445,11 @@ cbnlam1 _ = Nothing
 
 
 
+unJust :: Maybe LamExpr -> LamExpr
+unJust (Just l) = l
+
+cbvLam :: LamExpr -> Int -> Int
+cbvLam l i = let c = cbvlam1 l in if c == Nothing then i else cbvLam (unJust c) (i + 1)
+
 compareRedn :: LExpr -> Int -> (Int,Int,Int,Int)
-compareRedn = undefined
+compareRedn e i = undefined
