@@ -443,7 +443,9 @@ cbnlam1 _ = Nothing
 -- LET --
 --------- 
 
-
+cbnLamCount :: Maybe LamExpr -> Int
+cbnLamCount Nothing = 0
+cbnLamCount (Just e) = 1 + cbnLamCount (cbnlam1 e)
 
 unJust :: Maybe LamExpr -> LamExpr
 unJust (Just l) = l
@@ -452,4 +454,4 @@ cbvLam :: LamExpr -> Int -> Int
 cbvLam l i = let c = cbvlam1 l in if c == Nothing then i else cbvLam (unJust c) (i + 1)
 
 compareRedn :: LExpr -> Int -> (Int,Int,Int,Int)
-compareRedn e i = undefined
+compareRedn e i = (1, 1, (cbnLamCount (Just (letEnc e))), 1)
