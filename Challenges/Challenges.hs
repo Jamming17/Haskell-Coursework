@@ -167,10 +167,10 @@ rotateTile (e:es) R180
   | e == South = North : rotateTile es R180
   | e == West = East : rotateTile es R180
 rotateTile (e:es) R270
-  | e == North = West : rotateTile es R180
-  | e == East = North : rotateTile es R180
-  | e == South = East : rotateTile es R180
-  | e == West = South : rotateTile es R180
+  | e == North = West : rotateTile es R270
+  | e == East = North : rotateTile es R270
+  | e == South = East : rotateTile es R270
+  | e == West = South : rotateTile es R270
 
 swapTileEdges :: Tile -> [TileEdge] -> Tile
 swapTileEdges (Wire _) es = (Wire es)

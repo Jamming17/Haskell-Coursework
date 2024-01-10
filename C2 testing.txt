@@ -4,3 +4,39 @@ Unconnected, completable 3x3 puzzle
 
 Empty, uncompletable 4x4 puzzle
 [[Wire [], Wire [], Wire [], Wire []], [Wire [], Wire [], Wire [], Wire []], [Wire [], Wire [], Wire [], Wire []], [Wire [], Wire [], Wire [], Wire []]]
+
+t2
+[[Source [North], Sink [West]], [Wire [], Wire []], [Sink [North], Source [East]]]
+Just [[R90, R0], [R0, R0], [R90, R180]]
+
+t3
+[[Wire [North, East], Wire [North]], [Wire [North, West], Wire [West]]]
+Nothing
+
+t4
+[[Sink [North], Wire []], [Wire [], Source [East]]]
+Nothing
+
+t5, t6, t7
+[[Source [North], Wire [North, East], Wire []], [Wire [], Wire [East, West], Wire []], [Wire [], Wire [North, East], Sink [East]]]
+Just [[R90, R180, R0], [R0, R90, R0], [R0, R0, R180]]
+
+[[Source [North], Wire [North, East], Wire [North, East]], [Wire [North, West], Wire [North, East, South, West], Wire [North, East, West]], [Wire [], Sink [East, South], Wire [North, East]]]
+[[Source [South], Wire [South, East], Wire [South, West]], [Wire [North, East], Wire [North, East, South, West], Wire [North, South, West]], [Wire [], Sink [East, North], Wire [North, West]]]
+Just [[R180, R90, R180], [R90, R0, R270], [R0, R270, R270]]
+
+[[Wire [North], Wire [North, South], Wire [East]], [Wire [], Wire [], Wire []], [Source [East], Wire [East, West], Sink [East]]]
+Just [[R90, R90, R180], [R0, R0, R0], [R0, R0, R180]]
+
+
+t8
+[[Sink [West], Wire [], Wire []], [Source [North], Wire [], Source [North]], [Wire [], Wire [], Sink [East]], [Sink [North], Source [South], Wire []]]
+Just [[R270, R0, R0], [R0, R0, R180], [R0, R0, R270], [R90, R90, R0]]
+
+t9
+[[Source [East, South], Wire [East, North, West], Wire [North, East]], [Wire [North, South, West], Wire [North, South, East, West], Wire [East, North, West]], [Wire [North, East], Wire [South, West, North], Sink [South, East]]]
+Just [[R0, R180, R180], [R180, R0, R270], [R0, R90, R180]]
+
+t10
+[[Source [East, South], Sink [East, North, West], Source [North, East]], [Sink [North, South, West], Source [North, South, East, West], Sink [East, North, West]], [Source [North, East], Sink [South, West, North], Source [South, East]]]
+Just [[R0, R180, R180], [R180, R0, R270], [R0, R90, R180]]
