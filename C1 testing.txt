@@ -64,5 +64,18 @@ Puzzle with two directly connected sinks and sources ##True (should become False
 Two sinks leading to the same source ##True
 [[Wire [], Source [South], Wire []], [Wire [South, East], Wire [North, East, West], Wire [South, West]], [Sink [North], Wire [], Sink [North]]]
 
-Puzzle with no sources ##False
+Puzzle with no sources or sinks ##False
 [[Wire [South, East], Wire [West]], [Wire [North], Wire []]]
+
+Puzzle with no sinks
+[[Wire [South, East], Wire [West]], [Source [North], Wire []]]
+
+Puzzle with no sources
+[[Wire [South, East], Wire [West]], [Sink [North], Wire []]]
+
+
+3.5
+[[Sink [South], Wire [South]], [Wire [North], Source [North]]]
+
+8
+[[Wire [East, South], Wire [South, West], Wire [], Wire []], [Source [North], Wire [North, East], Wire [South, West], Wire []], [Wire [East, South], Sink [West], Wire [North, East, South], Sink [West]], [Wire [North, East], Source [West], Wire [North, East], Wire [West]]]

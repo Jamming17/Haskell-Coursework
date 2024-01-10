@@ -21,3 +21,5 @@ testC1 = (t1, t2, t3, t3andahalf, t4, t5, t6, t7) where
     t7 = (isPuzzleComplete [[Wire [South, East], Wire [West]], [Sink [North], Wire []]]) == False
     -- A larger 4x4 connected puzzle with sources and sinks
     t8 = (isPuzzleComplete [[Wire [East, South], Wire [South, West], Wire [], Wire []], [Source [North], Wire [North, East], Wire [South, West], Wire []], [Wire [East, South], Sink [West], Wire [North, East, South], Sink [West]], [Wire [North, East], Source [West], Wire [North, East], Wire [West]]]) == False
+
+    
