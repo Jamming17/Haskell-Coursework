@@ -22,7 +22,7 @@ testC1 = (t1, t2, t3, t3andahalf, t4, t5, t6, t7) where
     -- A larger 4x4 connected puzzle with sources and sinks
     t8 = (isPuzzleComplete [[Wire [East, South], Wire [South, West], Wire [], Wire []], [Source [North], Wire [North, East], Wire [South, West], Wire []], [Wire [East, South], Sink [West], Wire [North, East, South], Sink [West]], [Wire [North, East], Source [West], Wire [North, East], Wire [West]]]) == False
 
-    -- Tests for Challenge 2: solveCircuit
+-- Tests for Challenge 2: solveCircuit
 testC2 :: (Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool)
 testC2 = (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10) where
     -- Test case provided by the coursework description
@@ -45,3 +45,20 @@ testC2 = (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10) where
     t9 = (solveCircuit [[Source [East, South], Wire [East, North, West], Wire [North, East]], [Wire [North, South, West], Wire [North, South, East, West], Wire [East, North, West]], [Wire [North, East], Wire [South, West, North], Sink [South, East]]]) == Just [[R0, R180, R180], [R180, R0, R270], [R0, R90, R180]]
     -- A fully-wired puzzle composed of just sinks and paths
     t10 = (solveCircuit [[Source [East, South], Sink [East, North, West], Source [North, East]], [Sink [North, South, West], Source [North, South, East, West], Sink [East, North, West]], [Source [North, East], Sink [South, West, North], Source [South, East]]]) == Just [[R0, R180, R180], [R180, R0, R270], [R0, R90, R180]]
+
+-- Tests for Challenge 3:
+testC3 :: (Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool)
+testC3 = (t1, t2, t3, t4, t5, t6, t7, t8) where
+    -- Test cases provided by coursework description
+    t1 = (prettyPrint (App (Abs (V 1) (Var 1)) (Abs (V 1) (Var 1)))) == "(\\x1 -> x1) \\x1 -> x1"
+    t2 = (prettyPrint (Let Discard (Var 0) (Abs (V 1) (App (Var 1) (Abs (V 1) (Var 1)))))) == "let _ = x0 in \\x1 -> x1 \\x1 -> x1"
+    t3 = (prettyPrint (Abs (V 1) (Abs Discard (Abs (V 2) (App (Var 2) (Var 1)))))) == "\\x1 _ x2 -> x2 x1"
+    t4 = (prettyPrint (App (Var 2) (Abs (V 1) (Abs Discard (Var 1))))) == "x2 \\x1 _ -> x1"
+    -- Testing pairs, fst and snd
+    t5 = (prettyPrint (Pair (Var 0) (Var 1))) == "(x0, x1)"
+    t6 = (prettyPrint (Fst (Pair (Var 0) (Var 1)))) == "fst (x0, x1)"
+    t7 = (prettyPrint (Snd (Pair (Var 0) (Var 1)))) == "snd (x0, x1)"
+    -- Testing many embedded abstractions
+    t8 = (prettyPrint (Abs (V 0) (Abs (V 1) (Abs (V 2) (Abs (V 3) (Abs (V 4) (Var 5))))))) == "\\x0 x1 x2 x3 x4 -> x5"
+    -- Testing many embedded abstractions within a let
+    t9 = (prettyPrint (Let (V 0) (Abs (V 1) (Abs (V 2) (Abs (V 3) (Abs (V 4) (Var 5))))) (Var 6))) == "let x0 x1 x2 x3 x4 = x5 in x6"
