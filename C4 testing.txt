@@ -13,3 +13,23 @@ parseLetx "let x1 x3 = x2 in x1 x2"
 Let expression nested-abstraction test with applications
 parseLetx "let x1 _ x3 = x3 in \\x3 -> x1 x3 x3"
 // Just (Let (V 1) (Abs Discard (Abs (V 3) (Var 3))) (Abs (V 3) (App (App (Var 1) (Var 3)) (Var 3))))
+
+
+Pairs, fst and snd
+parseLetx "(x0, x1)"
+// Just (Pair (Var 0) (Var 1))
+
+parseLetx "((x1 x2), (let x4 = x5 in x6))"
+// Just (Pair (App (Var 1) (Var 2)) (Let (V 4) (Var 5) (Var 6)))
+
+parseLetx "fst ((x0, x1))"
+// Just (Fst (Pair (Var 0) (Var 1)))
+
+parseLetx "snd ((x0, x1))"
+// Just (Snd (Pair (Var 0) (Var 1)))
+
+
+A lot of spacing and no spacing
+parseLetx "let     x1           x3               =               x2                 in    x1                                                 x2"
+parseLetx "letx1x3=x2inx1x2"
+// Just (Let (V 1) (Abs (V 3) (Var 2)) (App (Var 1) (Var 2)))

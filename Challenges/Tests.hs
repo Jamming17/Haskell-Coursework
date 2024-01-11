@@ -46,7 +46,7 @@ testC2 = (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10) where
     -- A fully-wired puzzle composed of just sinks and paths
     t10 = (solveCircuit [[Source [East, South], Sink [East, North, West], Source [North, East]], [Sink [North, South, West], Source [North, South, East, West], Sink [East, North, West]], [Source [North, East], Sink [South, West, North], Source [South, East]]]) == Just [[R0, R180, R180], [R180, R0, R270], [R0, R90, R180]]
 
--- Tests for Challenge 3:
+-- Tests for Challenge 3: prettyPrint
 testC3 :: (Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool)
 testC3 = (t1, t2, t3, t4, t5, t6, t7, t8) where
     -- Test cases provided by coursework description
@@ -62,3 +62,18 @@ testC3 = (t1, t2, t3, t4, t5, t6, t7, t8) where
     t8 = (prettyPrint (Abs (V 0) (Abs (V 1) (Abs (V 2) (Abs (V 3) (Abs (V 4) (Var 5))))))) == "\\x0 x1 x2 x3 x4 -> x5"
     -- Testing many embedded abstractions within a let
     t9 = (prettyPrint (Let (V 0) (Abs (V 1) (Abs (V 2) (Abs (V 3) (Abs (V 4) (Var 5))))) (Var 6))) == "let x0 x1 x2 x3 x4 = x5 in x6"
+
+-- Tests for Challenge 4: parseLetx
+testC4 :: (Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool)
+testC4 = (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10) where
+    -- Test cases for association and brackets
+    t1 = (parseLetx "x1 x2 x3") == Just (App (App (Var 1) (Var 2)) (Var 3))
+    t2 = (parseLetx "x1 (x2 x3)") == Just (App (Var 1) (App (Var 2) (Var 3)))
+    t3 = (parseLetx "let x1 x3 = x2 in x1 x2") == Just (Let (V 1) (Abs (V 3) (Var 2)) (App (Var 1) (Var 2)))
+    t4 = (parseLetx "let x1 _ x3 = x3 in \\x3 -> x1 x3 x3") == Just (Let (V 1) (Abs Discard (Abs (V 3) (Var 3))) (Abs (V 3) (App (App (Var 1) (Var 3)) (Var 3))))
+    t5 = (parseLetx "(x0, x1)") == Just (Pair (Var 0) (Var 1))
+    t6 = (parseLetx "((x1 x2), (let x4 = x5 in x6))") == Just (Pair (App (Var 1) (Var 2)) (Let (V 4) (Var 5) (Var 6)))
+    t7 = (parseLetx "fst ((x0, x1))") == Just (Fst (Pair (Var 0) (Var 1)))
+    t8 = (parseLetx "snd ((x0, x1))") == Just (Snd (Pair (Var 0) (Var 1)))
+    t9 = (parseLetx "let     x1           x3               =               x2                 in    x1                                                 x2") == Just (Let (V 1) (Abs (V 3) (Var 2)) (App (Var 1) (Var 2)))
+    t10 = (parseLetx "letx1x3=x2inx1x2") == Just (Let (V 1) (Abs (V 3) (Var 2)) (App (Var 1) (Var 2)))
