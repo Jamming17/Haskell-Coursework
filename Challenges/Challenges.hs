@@ -15,6 +15,13 @@ module Challenges (TileEdge(..),Tile(..),Puzzle,isPuzzleComplete,
 import Parsing
 import Data.List
 
+{- 
+Author    : Jack Chiplin (jc16g22)
+Copyright : (c) University of Southampton
+
+many1 and chainl1 functions adapted from "Functional Pearls: Monadic Parsing in Haskell" by G. Hutton and E Meijer
+-}
+
 -- Challenge 1
 -- Testing Circuits
 
@@ -25,6 +32,7 @@ type Puzzle = [ [ Tile ] ]
 isPuzzleComplete :: Puzzle -> Bool
 isPuzzleComplete p = if (sourceSinkCount (concat p)) == True then (if isFullyConnected p == True then (sourcesAndSinks 1 (concat p) (createPuzzleTuple p)) else False) else False
 
+-- Checks whether there is at least one source and one sink present in the puzzle
 sourceSinkCount :: [Tile] -> Bool
 sourceSinkCount [] = False
 sourceSinkCount ((Sink _):_) = True
@@ -34,7 +42,7 @@ sourceSinkCount (t:ts) = sourceSinkCount ts
 isFullyConnected :: Puzzle -> Bool
 isFullyConnected p = and [(isHorizontallyConnected p), (isVerticallyConnected (transpose p))]
 
---Checks whether every source connects to a sink and vice-versa
+-- Checks whether every source connects to a sink and vice-versa
 sourcesAndSinks :: Int -> [Tile] -> ([(Int, Tile)], Int, Int) -> Bool
 sourcesAndSinks _ [] _ = True
 sourcesAndSinks i (p:ps) pt = and (checkTile i p pt : [sourcesAndSinks (i + 1) ps pt]) where
@@ -59,11 +67,11 @@ fullPath es i pt@(p, h, w) v = (snd (head (filter (\(x, _) -> x == i) p))) : nor
   eastNode = (if East `elem` es then (if not((i + 1) `elem` v) then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i + 1)) p)))) (i + 1) pt (i : v)) else []) else [])
   westNode = (if West `elem` es then (if not((i - 1) `elem` v) then (fullPath (getTileEdges (snd (head (filter (\(x, _) -> x == (i - 1)) p)))) (i - 1) pt (i : v)) else []) else [])
 
---Indexed Flattened list of tuples, height, width
+-- Indexed Flattened list of tuples, height, width
 createPuzzleTuple :: Puzzle -> ([(Int, Tile)], Int, Int)
 createPuzzleTuple p = ((zip [1..] (concat p)), length p, (length (concat p)) `div` (length p))
 
---Checks whether a row of wires in the puzzle are all connected
+-- Checks whether a row of wires in the puzzle are all connected
 isHorizontallyConnected :: Puzzle -> Bool
 isHorizontallyConnected [] = True
 isHorizontallyConnected (ts:tss) = (and [(isRowHorizontallyConnected ts True), (isHorizontallyConnected tss)]) where
@@ -77,7 +85,7 @@ isHorizontallyConnected (ts:tss) = (and [(isRowHorizontallyConnected ts True), (
       t1e = getTileEdges t1
       t2e = getTileEdges t2
 
---Checks whether a column of wires in the puzzle are all connected
+-- Checks whether a column of wires in the puzzle are all connected
 isVerticallyConnected :: Puzzle -> Bool
 isVerticallyConnected [] = True
 isVerticallyConnected (ts:tss) = (and [(isRowVerticallyConnected ts True), (isVerticallyConnected tss)]) where
@@ -91,7 +99,7 @@ isVerticallyConnected (ts:tss) = (and [(isRowVerticallyConnected ts True), (isVe
       t1e = getTileEdges t1
       t2e = getTileEdges t2
 
---Retrieves tile edges regardless of type
+-- Retrieves tile edges regardless of type
 getTileEdges :: Tile -> [TileEdge]
 getTileEdges (Wire es) = es
 getTileEdges (Sink es) = es
@@ -106,20 +114,24 @@ data Rotation = R0 | R90 | R180 | R270
 solveCircuit :: Puzzle -> Maybe [[ Rotation ]]
 solveCircuit p = solveHelper (createPuzzleTuple p) 1 p
 
---Parameters: rotating puzzle tuple / current index / original puzzle
+-- Parameters: rotating puzzle tuple / current index / original puzzle
 solveHelper :: ([(Int, Tile)], Int, Int) -> Int -> Puzzle -> Maybe [[Rotation]]
 solveHelper ([], _, _) _ _ = Nothing
 solveHelper pt@(its, h, w) i op
   | isPuzzleComplete (puzzleTupleToPuzzle pt) = Just (createFinalMatrix (puzzleTupleToPuzzle pt) op)
   | i > (maximum (map fst its)) = Nothing
+    -- Checks whether the tile has no edges or all four edges
   | getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) == [] || and (map (`elem` (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])))) [North, South, East, West]) == True = if isPuzzleComplete (puzzleTupleToPuzzle pt) then Just (createFinalMatrix (puzzleTupleToPuzzle pt) op) else (if i > (maximum (map fst its)) then Nothing else (if (isJust r1) then r1 else (Nothing)))
+    -- Checks whether the tile has two edges facing away from each other (a straight line)
   | and (map (`elem` (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])))) [North, South]) == True && and (map (`notElem` (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])))) [East, West]) == True || and (map (`elem` (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])))) [East, West]) == True && and (map (`notElem` (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])))) [North, South]) == True = if isPuzzleComplete (puzzleTupleToPuzzle pt) then Just (createFinalMatrix (puzzleTupleToPuzzle pt) op) else (if i > (maximum (map fst its)) then Nothing else (if (isJust r1) then r1 else (if (isJust r2) then r2 else (Nothing))))
+    -- Otherwise, move onto the next tile and try every puzzle possibility with all rotations of this tile
   | otherwise = if (isJust r1) then r1 else (if (isJust r2) then r2 else (if (isJust r3) then r3 else (if (isJust r4) then r4 else (Nothing)))) where
     r1 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R0)) i)) (i + 1) op
     r2 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R90)) i)) (i + 1) op
     r3 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R180)) i)) (i + 1) op
     r4 = solveHelper (createPuzzleTuple (insertTileIntoPuzzle pt (swapTileEdges (snd (head [(x, y) | (x, y) <- its, x == i])) (rotateTile (getTileEdges (snd (head [(x, y) | (x, y) <- its, x == i]))) R270)) i)) (i + 1) op
 
+-- Turns a completed puzzle into a rotation matrix based on the original puzzle
 createFinalMatrix :: Puzzle -> Puzzle -> [[Rotation]]
 createFinalMatrix np op = rebuildRotationMatrix ((length (concat np)) `div` (length np)) (createFinalMatrixHelper (concat np) (concat op)) where
   createFinalMatrixHelper :: [Tile] -> [Tile] -> [Rotation]
@@ -130,29 +142,35 @@ createFinalMatrix np op = rebuildRotationMatrix ((length (concat np)) `div` (len
     | t1 == (swapTileEdges t2 (rotateTile (getTileEdges t2) R180)) = R180 : createFinalMatrixHelper t1s t2s
     | t1 == (swapTileEdges t2 (rotateTile (getTileEdges t2) R270)) = R270 : createFinalMatrixHelper t1s t2s
 
+-- Turns a list of rotations back into a full matrix
 rebuildRotationMatrix :: Int -> [Rotation] -> [[Rotation]]
 rebuildRotationMatrix _ [] = []
 rebuildRotationMatrix w rs = (fst rSplit) : (rebuildRotationMatrix w (snd rSplit)) where
   rSplit = splitAt w rs
 
+-- Converts a 'puzzle tuple' back into a puzzle
 puzzleTupleToPuzzle :: ([(Int, Tile)], Int, Int) -> Puzzle
 puzzleTupleToPuzzle (its, _, w) = rebuildPuzzle w (map snd its)
 
+-- Detects if a Maybe is a Just or a Nothing
 isJust :: Maybe a -> Bool
 isJust (Just _) = True
 isJust Nothing = False
 
+-- Replaces a tile of a puzzle with another tile
 insertTileIntoPuzzle :: ([(Int, Tile)], Int, Int) -> Tile -> Int -> Puzzle
 insertTileIntoPuzzle (ts, h, w) t i = rebuildPuzzle w (puzzleHelper ts t i) where
   puzzleHelper :: [(Int, Tile)] -> Tile -> Int -> [Tile]
   puzzleHelper [] _ _ = []
   puzzleHelper ((pi, t):ts) tt i = if pi == i then tt : puzzleHelper ts tt i else t : puzzleHelper ts tt i
 
+-- Turns a lits of tiles back into a full puzzle
 rebuildPuzzle :: Int -> [Tile] -> Puzzle
 rebuildPuzzle _ [] = []
 rebuildPuzzle w ts = (fst tSplit) : (rebuildPuzzle w (snd tSplit)) where
   tSplit = splitAt w ts 
 
+-- Rotates a tile using its TileEdges
 rotateTile :: [TileEdge] -> Rotation -> [TileEdge]
 rotateTile [] _ = []
 rotateTile es R0 = es
@@ -172,6 +190,7 @@ rotateTile (e:es) R270
   | e == South = East : rotateTile es R270
   | e == West = South : rotateTile es R270
 
+-- Swaps a tile's edges for another input
 swapTileEdges :: Tile -> [TileEdge] -> Tile
 swapTileEdges (Wire _) es = (Wire es)
 swapTileEdges (Source _) es = (Source es)
@@ -185,6 +204,7 @@ data LExpr = Var Int | App LExpr LExpr | Let Bind LExpr LExpr | Pair LExpr LExpr
 data Bind = Discard | V Int 
     deriving (Eq,Show,Read)
 
+-- Pretty prints a LExpr using pattern matching
 prettyPrint :: LExpr -> String
 prettyPrint (Var i) = 'x' : (show i)
 prettyPrint (App v@(Var _) e2) = (prettyPrint v) ++ " " ++ (prettyPrint e2)
@@ -198,20 +218,24 @@ prettyPrint a@(Abs _ _) = "\\" ++ (prettyPrintAbs a "->")
 prettyPrint (Let b a@(Abs _ _) e2) = "let " ++ (prettyBind b) ++ " " ++ (prettyPrintAbs a "=") ++ " in " ++ (prettyPrint e2)
 prettyPrint (Let b e1 e2) = "let " ++ (prettyBind b) ++ " = " ++ (prettyPrint e1) ++ " in " ++ (prettyPrint e2)
 
+-- A separate function to deal with nested abstractions
 prettyPrintAbs :: LExpr -> String -> String
 prettyPrintAbs (Abs b a@(Abs _ _)) s = (prettyBind b) ++ " " ++ (prettyPrintAbs a s)
 prettyPrintAbs (Abs b e) s = (prettyBind b) ++ " " ++ s ++ " " ++ (prettyPrint e)
 
+-- A separate function to deal with binds
 prettyBind :: Bind -> String
 prettyBind Discard = "_"
 prettyBind (V i) = 'x' : (show i)
 
 -- Challenge 4 - Parsing Let Expressions
 
+-- Function that parses expressions
 parseLetx :: String -> Maybe LExpr
 parseLetx s = let p = parse plexpr s in
   if p == [] then Nothing else (if snd (head p) /= "" then Nothing else Just (fst (head p)))
 
+-- Following functions are adapted from "Functional Pearls: Monadic Parsing in Haskell" by G. Hutton and E Meijer 
 many1 :: Parser a -> Parser [a]
 many1 p = do v <- p;
              vs <- many p;
@@ -224,7 +248,9 @@ p `chainl1` op = do {a <- p; rest a}
                                 b <- p
                                 rest (f a b))
                            <|> return a
+-- End of adapted code. The following code is my own.
 
+-- Overall parser for LExprs
 plexpr :: Parser LExpr
 plexpr = do space;
             e <- pbrackets `chainl1` pspace <|> pbrackets;
@@ -335,6 +361,7 @@ data LamExpr = LamVar Int | LamApp LamExpr LamExpr | LamAbs Int LamExpr
 letEnc ::LExpr -> LamExpr
 letEnc l = encode l
 
+-- Encodes LExprs into LamExprs
 encode :: LExpr -> LamExpr
 encode (Var i) = LamVar i
 encode (App e1 e2) = LamApp (encode e1) (encode e2)
@@ -347,14 +374,17 @@ encode (Snd e) = LamApp (encode e) (LamAbs 0 (LamAbs 1 (LamVar 1)))
 encode (Pair e1 e2) = LamAbs c (LamApp (LamApp (LamVar c) (encode e1)) (encode e2)) where
   c = chooseDoubleDiscardVar (encode e1) (encode e2) 0
 
+-- Selects unused variables so that variables to not interfere with each other
 selectVar :: LamExpr -> Int -> Bool
 selectVar (LamVar int) i = if int == i then False else True
 selectVar (LamApp e1 e2) i = (selectVar e1 i) && (selectVar e2 i)
 selectVar (LamAbs int e) i = if int == i then False else (selectVar e i)
 
+-- Selects an unused variable for the Discard token in Abs and Let expressions
 chooseDiscardVar :: LamExpr -> Int -> Int
 chooseDiscardVar e i = if (selectVar e i) == True then i else (chooseDiscardVar e (i + 1))
 
+-- Selects an unused variable for the Discard token in Pair expressions
 chooseDoubleDiscardVar :: LamExpr -> LamExpr -> Int -> Int
 chooseDoubleDiscardVar e1 e2 i = if ((selectVar e1 i) && (selectVar e2 i)) == True then i else (chooseDoubleDiscardVar e1 e2 (i + 1))
 
