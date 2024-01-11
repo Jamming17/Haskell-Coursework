@@ -43,7 +43,7 @@ testC2 = (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10) where
     t8 = (solveCircuit [[Sink [West], Wire [], Wire []], [Source [North], Wire [], Source [North]], [Wire [], Wire [], Sink [East]], [Sink [North], Source [South], Wire []]]) == Just [[R270, R0, R0], [R0, R0, R180], [R0, R0, R270], [R90, R90, R0]]
     -- A fully-wired puzzle
     t9 = (solveCircuit [[Source [East, South], Wire [East, North, West], Wire [North, East]], [Wire [North, South, West], Wire [North, South, East, West], Wire [East, North, West]], [Wire [North, East], Wire [South, West, North], Sink [South, East]]]) == Just [[R0, R180, R180], [R180, R0, R270], [R0, R90, R180]]
-    -- A fully-wired puzzle composed of just sinks and paths
+    -- A fully-wired puzzle composed of just sinks and sources
     t10 = (solveCircuit [[Source [East, South], Sink [East, North, West], Source [North, East]], [Sink [North, South, West], Source [North, South, East, West], Sink [East, North, West]], [Source [North, East], Sink [South, West, North], Source [South, East]]]) == Just [[R0, R180, R180], [R180, R0, R270], [R0, R90, R180]]
 
 -- Tests for Challenge 3: prettyPrint
@@ -69,11 +69,28 @@ testC4 = (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10) where
     -- Test cases for association and brackets
     t1 = (parseLetx "x1 x2 x3") == Just (App (App (Var 1) (Var 2)) (Var 3))
     t2 = (parseLetx "x1 (x2 x3)") == Just (App (Var 1) (App (Var 2) (Var 3)))
+    -- Test case for embedded abstractions within a let expression
     t3 = (parseLetx "let x1 x3 = x2 in x1 x2") == Just (Let (V 1) (Abs (V 3) (Var 2)) (App (Var 1) (Var 2)))
+    -- Test case for application and for discard tokens within let expressions
     t4 = (parseLetx "let x1 _ x3 = x3 in \\x3 -> x1 x3 x3") == Just (Let (V 1) (Abs Discard (Abs (V 3) (Var 3))) (Abs (V 3) (App (App (Var 1) (Var 3)) (Var 3))))
+    -- Test cases for pairs, fst and snd
     t5 = (parseLetx "(x0, x1)") == Just (Pair (Var 0) (Var 1))
     t6 = (parseLetx "((x1 x2), (let x4 = x5 in x6))") == Just (Pair (App (Var 1) (Var 2)) (Let (V 4) (Var 5) (Var 6)))
     t7 = (parseLetx "fst ((x0, x1))") == Just (Fst (Pair (Var 0) (Var 1)))
     t8 = (parseLetx "snd ((x0, x1))") == Just (Snd (Pair (Var 0) (Var 1)))
+    -- Test casts for varied spacing (a lot of spacing / no spaces)
     t9 = (parseLetx "let     x1           x3               =               x2                 in    x1                                                 x2") == Just (Let (V 1) (Abs (V 3) (Var 2)) (App (Var 1) (Var 2)))
     t10 = (parseLetx "letx1x3=x2inx1x2") == Just (Let (V 1) (Abs (V 3) (Var 2)) (App (Var 1) (Var 2)))
+
+-- Tests for Challenge 5: letEnc
+testC5 :: (Bool, Bool, Bool, Bool, Bool, Bool)
+testC5 = (t1, t2, t3, t4, t5, t6) where
+    -- Test cases provided by the coursework specification (tests applications, abstractions and let expressions; my answers are alpha-equivalent to the spec answers)
+    t1 = (letEnc (Let Discard (Abs (V 1) (Var 1)) (Abs (V 1) (Var 1)))) == LamApp (LamAbs 0 (LamAbs 1 (LamVar 1))) (LamAbs 1 (LamVar 1))
+    t2 = (letEnc (Fst (Pair (Abs (V 1) (Var 1)) (Abs Discard (Var 2))))) == LamApp (LamAbs 3 (LamApp (LamApp (LamVar 3) (LamAbs 1 (LamVar 1))) (LamAbs 0 (LamVar 2)))) (LamAbs 0 (LamAbs 1 (LamVar 0)))
+    -- Test case for embdedded abstractions
+    t3 = (letEnc (Abs (V 1) (Abs (V 2) (Abs (V 3) (Var 4))))) == LamAbs 1 (LamAbs 2 (LamAbs 3 (LamVar 4)))
+    -- Test cases for pairs, fst and snd
+    t4 = (letEnc (Pair (Var 1) (Var 2))) == LamAbs 0 (LamApp (LamApp (LamVar 0) (LamVar 1)) (LamVar 2))
+    t5 = (letEnc (Fst (Pair (Var 1) (Var 2)))) == LamApp (LamAbs 0 (LamApp (LamApp (LamVar 0) (LamVar 1)) (LamVar 2))) (LamAbs 0 (LamAbs 1 (LamVar 0)))
+    t6 = (letEnc (Snd (Pair (Var 1) (Var 2)))) == LamApp (LamAbs 0 (LamApp (LamApp (LamVar 0) (LamVar 1)) (LamVar 2))) (LamAbs 0 (LamAbs 1 (LamVar 1)))
